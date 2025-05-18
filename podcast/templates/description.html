@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CS235 Podcast Library - Description</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div id="success" class="alert alert-success alert-dismissible fade show alert-cus" role="alert" hidden>
+    <strong>Success!</strong> You have added the episode to your playlist.
+    <button type="button" class="btn-close" onclick="closeAlert(event)" aria-label="Close"></button>
+</div>
+<div id="danger" class="alert alert-danger alert-dismissible fade show alert-cus" role="alert" hidden>
+    <strong>Error!</strong> You must log in before adding the episode.
+    <button type="button" class="btn-close" onclick="closeAlert(event)" aria-label="Close"></button>
+</div>
+
+<div style="min-height: 80vh; margin-bottom: 20px; padding-bottom:20px; background-color: #f6f4f4; ">
+
+    <div style="display: flex; flex-direction: column; justify-content: center; align-content: center; text-align: center; width: 60%; margin: 20px auto; padding-top: 25px;">
+        <div>
+            <button type="button" onclick="history.back()" class="btn btn-link" style="margin-right: 100%; text-decoration: none; font-size: 20px;">Back</button>
+            <h1>{{ podcast.title }}</h1>
+        </div>
+        <div style="display: flex; flex-direction: row; justify-content: space-between; gap: 50px; margin-top: 20px;">
+            <img src="{{ podcast.image }}" alt="image" style="height:300px; min-height: 300px;">
+            <div style="text-align: left">
+                <h3 id="podcastId">ID: {{ podcast.id }}</h3>
+                <p>Author: {{ podcast.author.name }}</p>
+                <p>Website: <a href="{{ podcast.website }}">{{ podcast.website }}</a></p>
+                <p>Itunes ID: {{ podcast.itunes_id }}</p>
+                <p>Description: {{ podcast.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover" style="width: 60%; margin: 0 auto; ">
+        <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Link</th>
+            <th scope="col" style="width: 70px">Length</th>
+            <th scope="col">Description</th>
+            <th scope="col">Publish Date</th>
+            <th scope="col" style="width: 70px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if not podcast.episodes[0] %}
+            <tr>
+                <td colspan="6" style="text-align: center">No Data</td>
+            </tr>
+        {% endif %}
+        {% for episode in podcast.episodes %}
+            <tr>
+                <td data-bs-toggle="tooltip"
+                    data-bs-title="{{ episode.description }}">{{ episode.title }}>{{ episode.title }}</td>
+                <td><a href="{{ episode.link }}">{{ episode.link }}</a></td>
+                <td>{{ episode.length }}</td>
+                <td data-bs-toggle="tooltip" data-bs-title="{{ episode.description }}">{{ episode.description }}</td>
+                <td>{{ episode.date }}</td>
+                <td style="text-align: center; cursor: pointer;">
+                    <i data-bs-toggle="tooltip" data-bs-title="Add to playlist"
+                       class="bi bi-check-lg"
+                       onclick="addToPlaylist({{ episode.id }}); event.stopPropagation();">
+                    </i>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="width: 60%; margin: 20px auto;">
+        {% for review in reviews %}
+            <div class="card my-3">
+                <div class="card-header">
+                    {{ review.title }} - {{ review.rating }}
+                </div>
+                <div class="card-body">
+                    <blockquote class="blockquote mb-0">
+                        <p>{{ review.content }}</p>
+                        <footer class="blockquote-footer">{{ review.user.username }}
+                        </footer>
+                    </blockquote>
+                </div>
+            </div>
+        {% endfor %}
+    <span>Average Rating: {{ avg_rating }}</span>
+        {% if user %}
+            <span style="float:right; cursor:pointer; font-size: 20px;" data-bs-toggle="modal"
+                  data-bs-target="#exampleModal">Click to review</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Add Review</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1" class="form-label">Review Title</label>
+                    <input type="text" class="form-control" id="exampleFormControlInput1" >
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Review Content</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="4" ></textarea>
+                </div>
+                <div style="text-align: center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1"
+                               value="1">
+                        <label class="form-check-label" for="inlineRadio1">1</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2"
+                               value="2">
+                        <label class="form-check-label" for="inlineRadio2">2</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3"
+                               value="3" >
+                        <label class="form-check-label" for="inlineRadio3">3</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio4"
+                               value="4">
+                        <label class="form-check-label" for="inlineRadio4">4</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio5"
+                               value="5" checked>
+                        <label class="form-check-label" for="inlineRadio5">5</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button onclick="addReview({{ podcast.id }})" type="button" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+    const closeAlert = (e) => {
+        e.target.parentNode.hidden = true
+    }
+
+    const addToPlaylist = (id) => {
+        const flag = document.querySelectorAll("ul")[0].querySelectorAll("li")[3].innerText === "Logout"
+        if (flag) {
+            document.querySelector("#success").hidden = false
+            location.href = "http://" + location.host + "/playlist/add/episode/" + id
+        } else {
+            document.querySelector("#danger").hidden = false
+        }
+
+    }
+
+    const addReview = (id) => {
+        const radios = document.querySelectorAll('input[type="radio"]');
+        const title = document.querySelector('#exampleFormControlInput1').value;
+        const content = document.querySelector('#exampleFormControlTextarea1').value;
+        if (title.trim() === "") {
+            alert("The title is required!")
+            return
+        }
+        if (content.trim() === "") {
+            alert("The content is required!")
+            return
+        }
+        let r = 0;
+        for (const radio of radios) {
+            if (radio.checked) {
+                r = radio.value
+                break
+            }
+        }
+        location.href = "http://" + location.host + "/review/" + id + "/" + title + "/" + r + "/" + content
+    }
+
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+
+</script>
+</body>
+</html>
